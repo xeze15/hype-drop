@@ -5,18 +5,9 @@
   <div id="toast" class="toast" hidden></div>
 
   <section class="card">
-    <h2>Notifications</h2>
-    <p class="muted">Signed in as <strong><%= currentUser.username %></strong>.</p>
-    <form id="profile-form" class="form-grid">
-      <label class="full">Notification email
-        <input name="email" type="email" value="<%= currentUser.email %>" placeholder="you@gmail.com" />
-      </label>
-      <label class="check">
-        <input type="checkbox" name="notifyEnabled" <%= currentUser.notify_enabled ? 'checked' : '' %> />
-        Email me when a queue starts
-      </label>
-      <div class="full"><button class="btn btn-primary" type="submit">Save</button></div>
-    </form>
+    <p class="muted">Signed in as <strong><%= currentUser.username %></strong> (<%= currentUser.role %>).</p>
+    <p class="muted">Queue alerts show live on the <a href="/">dashboard</a>. For desktop
+      notifications that get past bot protection, use the browser extension in <code>extension/</code>.</p>
   </section>
 
   <section class="card">

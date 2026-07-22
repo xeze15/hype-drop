@@ -1,4 +1,4 @@
-/* Admin panel: targets, monitor settings, email, users. */
+/* Admin panel: targets, monitor settings, users. */
 (function () {
   const { api, el, relTime, toast } = window.HD;
 
@@ -72,12 +72,6 @@
 
   // ── Config ────────────────────────────────────────────────────────────────
   const cfgForm = document.getElementById('config-form');
-  async function loadConfig() {
-    try {
-      const { config } = await api('GET', '/api/config');
-      cfgForm.subjectTemplate.value = config.subjectTemplate || '';
-    } catch (_) { /* ignore */ }
-  }
   cfgForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const f = e.target;
@@ -90,25 +84,9 @@
       userAgent: f.userAgent.value,
       notifyOnQueue: f.notifyOnQueue.checked,
       notifyOnOpen: f.notifyOnOpen.checked,
-      subjectTemplate: f.subjectTemplate.value,
     };
     try { await api('PUT', '/api/config', body); toast('Settings saved', 'ok'); }
     catch (err) { toast(err.message, 'err'); }
-  });
-
-  // ── Email ─────────────────────────────────────────────────────────────────
-  document.getElementById('test-email').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const to = e.target.to.value.trim();
-    try { const r = await api('POST', '/api/notify/test', to ? { to } : {}); toast('Sent to ' + r.sentTo, 'ok'); }
-    catch (err) { toast(err.message, 'err'); }
-  });
-  const verifyBtn = document.getElementById('verify-smtp');
-  if (verifyBtn) verifyBtn.addEventListener('click', async () => {
-    verifyBtn.disabled = true;
-    try { const r = await api('GET', '/api/notify/verify'); toast(r.ok ? 'SMTP OK ✅' : 'SMTP error: ' + r.reason, r.ok ? 'ok' : 'err'); }
-    catch (err) { toast(err.message, 'err'); }
-    finally { verifyBtn.disabled = false; }
   });
 
   // ── Users ─────────────────────────────────────────────────────────────────
@@ -116,15 +94,6 @@
   function userRow(u) {
     const tr = el('tr', { 'data-id': u.id });
     tr.append(el('td', { text: u.username }));
-
-    const emailCell = el('td', {});
-    const emailInput = el('input', { type: 'email', value: u.email || '', placeholder: 'no email' });
-    emailInput.addEventListener('change', async () => {
-      try { await api('PATCH', '/api/users/' + u.id, { email: emailInput.value.trim() }); toast('Saved', 'ok'); }
-      catch (err) { toast(err.message, 'err'); }
-    });
-    emailCell.append(emailInput);
-    tr.append(emailCell);
 
     const roleCell = el('td', {});
     const roleSel = el('select', {});
@@ -137,15 +106,6 @@
     });
     roleCell.append(roleSel);
     tr.append(roleCell);
-
-    const notifyCell = el('td', {});
-    const chk = el('input', { type: 'checkbox' }); chk.checked = !!u.notifyEnabled;
-    chk.addEventListener('change', async () => {
-      try { await api('PATCH', '/api/users/' + u.id, { notifyEnabled: chk.checked }); toast('Saved', 'ok'); }
-      catch (err) { toast(err.message, 'err'); chk.checked = !chk.checked; }
-    });
-    notifyCell.append(chk);
-    tr.append(notifyCell);
 
     const act = el('td', { class: 'actions' });
     const del = el('button', { class: 'btn btn-sm btn-danger', text: 'Delete' });
@@ -173,16 +133,13 @@
     try {
       await api('POST', '/api/users', {
         username: f.username.value.trim(),
-        email: f.email.value.trim(),
         password: f.password.value,
         role: f.role.value,
-        notifyEnabled: f.notifyEnabled.checked,
       });
       f.reset(); loadUsers(); toast('User added', 'ok');
     } catch (err) { toast(err.message, 'err'); }
   });
 
   loadTargets();
-  loadConfig();
   loadUsers();
 })();

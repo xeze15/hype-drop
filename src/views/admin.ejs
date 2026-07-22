@@ -53,44 +53,26 @@
       <label class="check">
         <input type="checkbox" name="notifyOnOpen" <%= monitor.notifyOnOpen ? 'checked' : '' %> /> Notify when a queue ends
       </label>
-      <label class="full">Email subject template
-        <input name="subjectTemplate" placeholder="🚨 Queue started: {label}" />
-      </label>
       <div class="full">
         <button class="btn btn-primary" type="submit">Save settings</button>
       </div>
     </form>
   </section>
 
-  <!-- Email -->
-  <section class="card">
-    <h2>Email alerts</h2>
-    <p class="muted">
-      Status: <strong id="email-status"><%= emailEnabled ? 'SMTP configured' : 'disabled (set SMTP_* in .env)' %></strong>.
-      Alerts go to every user who has a notification address and has alerts enabled.
-    </p>
-    <form id="test-email" class="inline-form">
-      <input name="to" type="email" placeholder="send test to (defaults to your address)" />
-      <button class="btn" type="submit" <%= emailEnabled ? '' : 'disabled' %>>Send test email</button>
-      <button id="verify-smtp" class="btn btn-ghost" type="button" <%= emailEnabled ? '' : 'disabled' %>>Verify SMTP</button>
-    </form>
-  </section>
-
   <!-- Users -->
   <section class="card">
-    <h2>Users &amp; notification recipients</h2>
+    <h2>Users</h2>
+    <p class="muted">Accounts that can sign in to this dashboard.</p>
     <form id="add-user" class="form-grid">
       <label>Username <input name="username" minlength="3" required /></label>
-      <label>Email (Gmail) <input name="email" type="email" placeholder="user@gmail.com" /></label>
       <label>Password <input name="password" type="password" minlength="8" required /></label>
       <label>Role
         <select name="role"><option value="user">user</option><option value="admin">admin</option></select>
       </label>
-      <label class="check"><input type="checkbox" name="notifyEnabled" checked /> Receives alerts</label>
       <div class="full"><button class="btn btn-primary" type="submit">Add user</button></div>
     </form>
     <table class="table" id="users-table">
-      <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Alerts</th><th></th></tr></thead>
+      <thead><tr><th>User</th><th>Role</th><th></th></tr></thead>
       <tbody></tbody>
     </table>
   </section>

@@ -1,18 +1,27 @@
 # Hype Drop 🔴 — Pokémon Center queue monitor
 
-A small, self-hostable web app that watches the [Pokémon Center](https://www.pokemoncenter.com/)
-store (or any [Queue-it](https://queue-it.com/)-protected site) and tells you the
-moment a **virtual waiting-room queue** goes live — on a login-protected
-dashboard **and** by **email** to the people you choose.
+Watches the [Pokémon Center](https://www.pokemoncenter.com/) store (or any
+[Queue-it](https://queue-it.com/)-protected site) and tells you the moment a
+**virtual waiting-room queue** goes live. It comes in two parts:
 
-Built to run on a cheap VPS. Login + password protected. Email alerts go only to
-registered users who have a notification address and have alerts enabled.
+1. **A browser extension** (`extension/`) — **the recommended way.** It checks
+   from *your* real browser, so it gets past the bot protection that blocks
+   servers, and alerts you with a **desktop notification** + toolbar badge +
+   sound. No server, no email, no proxy. 👉 See [`extension/README.md`](extension/README.md).
+2. **A self-hosted web app** (`src/`) — an optional login-protected dashboard
+   that checks server-side and shows queue status live to a team. Handy when the
+   target isn't behind aggressive bot protection, or as a shared status board.
+
+> **Why the extension is recommended:** Pokémon Center is behind **Akamai bot
+> protection** that reliably blocks automated *server-side* checks (they come
+> back `blocked`). A browser extension checks using your real IP, browser
+> fingerprint, and Akamai session cookies — which is what actually gets through.
 
 ![states: open / queue / blocked / error](public/favicon.svg)
 
 ---
 
-## What it does
+## What the web app does
 
 - **Checks on a schedule** (configurable interval + jitter) whether your target
   URLs are showing a queue.
@@ -23,11 +32,11 @@ registered users who have a notification address and have alerts enabled.
   | 🔴 `queue`   | A Queue-it waiting room / virtual line is active. **This is what triggers alerts.** |
   | 🟠 `blocked` | The site blocked the check (bot protection). Not a queue — the check couldn't see the real page. |
   | ⚪ `error`   | Network/timeout/other error. |
-- **Alerts on the transition into `queue`**:
-  - an on-site banner + real-time alert feed (via Server-Sent Events), and
-  - an **email** to every user who has a notification address and alerts enabled.
-- **Login-protected** with per-user accounts, an admin panel, and self-service
-  profile settings.
+- **Alerts on the transition into `queue`** with an on-site banner + real-time
+  alert feed (via Server-Sent Events). *(Email alerts were removed — use the
+  browser extension for push/desktop notifications.)*
+- **Login-protected** with per-user accounts, an admin panel, and a self-service
+  password page.
 - Persists everything in a single **SQLite** file — no external database.
 
 ### How queue detection works (and its limits)
@@ -89,7 +98,7 @@ The image is based on the official Playwright image, so Chromium and all its
 system libraries are already included (nothing to `apt install`).
 
 ```bash
-cp .env.example .env      # edit SESSION_SECRET, SMTP_*, PUBLIC_BASE_URL, TRUST_PROXY=1, COOKIE_SECURE=1
+cp .env.example .env      # edit SESSION_SECRET, PUBLIC_BASE_URL, TRUST_PROXY=1, COOKIE_SECURE=1
 docker compose up -d --build
 docker compose logs -f
 ```
@@ -111,7 +120,7 @@ sudo -u hypedrop npm ci --omit=dev
 # Chromium + OS deps for the checker:
 sudo npx playwright install --with-deps chromium
 sudo -u hypedrop cp .env.example .env
-sudo -u hypedrop nano .env          # set SESSION_SECRET, SMTP_*, TRUST_PROXY=1, COOKIE_SECURE=1, PUBLIC_BASE_URL
+sudo -u hypedrop nano .env          # set SESSION_SECRET, TRUST_PROXY=1, COOKIE_SECURE=1, PUBLIC_BASE_URL
 
 # service
 sudo cp deploy/hype-drop.service /etc/systemd/system/
@@ -134,29 +143,14 @@ sudo -u hypedrop npm run create-admin
 
 ---
 
-## Email alerts (SMTP)
+## Browser extension (recommended for Pokémon Center)
 
-Email is optional but needed for the "alert me" part. Any SMTP provider works.
-
-**Gmail** (use an **App Password**, not your normal password — requires 2FA on
-the Google account: <https://myaccount.google.com/apppasswords>):
-
-```ini
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=465
-SMTP_SECURE=1
-SMTP_USER=youraddress@gmail.com
-SMTP_PASS=your-16-char-app-password
-MAIL_FROM="Hype Drop <youraddress@gmail.com>"
-```
-
-Other providers (SendGrid, Mailgun, Amazon SES, Postmark, …) all expose SMTP
-credentials that drop straight into the same variables.
-
-In **Admin → Email alerts** you can **send a test email** and **verify SMTP**.
-Alerts are sent to every user who has a notification address **and** "Receives
-alerts" enabled — set these per user in **Admin → Users**, or per person in
-**Profile**.
+Because the live store blocks server-side checks, the most reliable way to get
+alerted is the extension in [`extension/`](extension/README.md): load it unpacked
+in Chrome/Edge (`chrome://extensions` → Developer mode → **Load unpacked** →
+select `extension/`), and it watches from your real browser and fires a desktop
+notification when a queue starts. No server or email required. Full details in
+[`extension/README.md`](extension/README.md).
 
 ---
 
@@ -171,7 +165,7 @@ database; the `.env` values are just the initial defaults).
 | `PORT` / `HOST` | `3000` / `127.0.0.1` | Listen address (keep on localhost behind a proxy). |
 | `SESSION_SECRET` | — | **Required.** Long random string signing session cookies. |
 | `TRUST_PROXY` / `COOKIE_SECURE` | `0` / auto | Set both to `1` behind a TLS proxy. |
-| `PUBLIC_BASE_URL` | — | Public URL, used in alert emails. |
+| `PUBLIC_BASE_URL` | — | Public URL, used in on-page links. |
 | `DATABASE_PATH` | `./data/hype-drop.db` | SQLite file location. |
 | `CHECK_INTERVAL_SECONDS` | `60` | Seconds between checks per target. |
 | `CHECK_JITTER_SECONDS` | `15` | Random ± jitter added to the interval. |
@@ -179,8 +173,9 @@ database; the `.env` values are just the initial defaults).
 | `CHECK_STRATEGY` | `browser` | `browser`, `http`, or `auto`. |
 | `CHECK_TIMEOUT_MS` | `30000` | Per-check timeout. |
 | `CHECK_USER_AGENT` | (modern default) | Override the checker's User-Agent. |
+| `CHECK_PROXY_URL` | — | Route the checker through an http/https/socks5 proxy. |
+| `CHECK_HEADLESS` | `1` | `0` runs a headed browser (needs a display / xvfb). |
 | `SEED_TARGETS` | `https://www.pokemoncenter.com/` | URLs to seed on first run. |
-| `SMTP_*` / `MAIL_FROM` | — | Email delivery (see above). |
 | `BOOTSTRAP_ADMIN_*` | — | Auto-create an admin on first run (optional). |
 | `CHROME_EXECUTABLE_PATH` | auto | Force a specific Chromium binary. |
 
@@ -219,7 +214,15 @@ checkout, or bypass the queue. Bots that do are what queues exist to stop.
 ## Project layout
 
 ```
-src/
+extension/             Browser extension (recommended) — see extension/README.md
+  manifest.json        MV3 manifest
+  background.js        Service worker: timer, checks, notifications, badge
+  content.js           Reads real Pokémon Center / Queue-it pages you visit
+  detector.js          Shared open/queue/blocked/error classifier
+  popup.*              Status view + configuration UI
+  offscreen.*          Plays the alert tone
+  icons/               Toolbar icons
+src/                   Optional self-hosted dashboard
   server.js            Express app wiring, security, startup, shutdown
   config.js            Environment configuration
   db.js  models.js     SQLite schema + data access
@@ -228,14 +231,13 @@ src/
   monitor/
     detectors.js       Detection strategies + queue/blocked classifier
     browser.js         Shared headless Chromium (Playwright)
-    scheduler.js       Periodic loop, state changes, alert dispatch
-  notify/email.js      Nodemailer transport + alert templates
+    scheduler.js       Periodic loop, state changes, on-site alert dispatch
   routes/              auth · api · pages
   views/               EJS templates (login, setup, dashboard, admin, profile)
 public/                CSS + client JS (dashboard live view, admin, profile)
-scripts/               create-admin, check-once CLIs
+scripts/               create-admin, check-once, generate-extension-icons CLIs
 deploy/                systemd unit + nginx example
-test/                  detector unit tests + hermetic end-to-end test
+test/                  detector + extension-detector unit tests + e2e test
 ```
 
 ## License

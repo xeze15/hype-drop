@@ -7,7 +7,6 @@ const { requireAuthApi, requireAdminApi } = require('../auth');
 const { normalizeUrl, isEmail, isNonEmptyString, clampInt, asyncHandler } = require('../util');
 const { bus } = require('../bus');
 const scheduler = require('../monitor/scheduler');
-const email = require('../notify/email');
 const { config } = require('../config');
 
 const router = express.Router();
@@ -37,7 +36,6 @@ router.get('/status', (req, res) => {
       intervalSeconds: s.intervalSeconds,
       jitterSeconds: s.jitterSeconds,
     },
-    emailEnabled: email.isEnabled(),
     targets: Targets.all().map(scheduler.publicTarget),
   });
 });
@@ -148,18 +146,10 @@ const CONFIG_KEYS = {
   userAgent: (v) => String(v || '').slice(0, 400),
   notifyOnQueue: (v) => !!v,
   notifyOnOpen: (v) => !!v,
-  subjectTemplate: (v) => String(v || '🚨 Queue started: {label}').slice(0, 200),
 };
 
 router.get('/config', (req, res) => {
-  const s = scheduler.getMonitorSettings();
-  res.json({
-    config: {
-      ...s,
-      subjectTemplate: settings.get('subjectTemplate', '🚨 Queue started: {label}'),
-    },
-    emailEnabled: email.isEnabled(),
-  });
+  res.json({ config: scheduler.getMonitorSettings() });
 });
 
 router.put('/config', requireAdminApi, (req, res) => {
@@ -173,36 +163,6 @@ router.put('/config', requireAdminApi, (req, res) => {
   Events.add({ type: 'info', message: `Settings updated: ${Object.keys(applied).join(', ') || 'none'}` });
   res.json({ ok: true, applied });
 });
-
-// ── Email test (admin) ────────────────────────────────────────────────────────
-router.post(
-  '/notify/test',
-  requireAdminApi,
-  asyncHandler(async (req, res) => {
-    if (!email.isEnabled()) return res.status(400).json({ error: 'SMTP is not configured.' });
-    const to = isEmail(req.body?.to) ? req.body.to.trim() : req.user.email;
-    if (!isEmail(to)) return res.status(400).json({ error: 'No valid recipient address.' });
-    try {
-      await email.sendMail({
-        to,
-        subject: 'Hype Drop — test alert ✅',
-        text: 'This is a test email from your Hype Drop monitor. If you received this, email alerts are working.',
-        html: '<p>This is a <strong>test email</strong> from your Hype Drop monitor.</p><p>If you received this, email alerts are working. ✅</p>',
-      });
-      res.json({ ok: true, sentTo: to });
-    } catch (err) {
-      res.status(502).json({ error: `Send failed: ${err.message}` });
-    }
-  })
-);
-
-router.get(
-  '/notify/verify',
-  requireAdminApi,
-  asyncHandler(async (req, res) => {
-    res.json(await email.verify());
-  })
-);
 
 // ── Users (admin) ─────────────────────────────────────────────────────────────
 router.get('/users', requireAdminApi, (req, res) => {

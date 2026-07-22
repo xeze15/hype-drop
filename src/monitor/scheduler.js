@@ -1,10 +1,9 @@
 'use strict';
 
 const { settings } = require('../db');
-const { Targets, Events, Notifications, Users } = require('../models');
+const { Targets, Events, Notifications } = require('../models');
 const { check } = require('./detectors');
 const { closeBrowser } = require('./browser');
-const email = require('../notify/email');
 const { emit } = require('../bus');
 const { config } = require('../config');
 
@@ -90,8 +89,8 @@ async function handleStateChange(target, result, prevState, s) {
         targetId: target.id,
       });
       emit('notification', note);
-      log(`QUEUE detected for "${label}" — sending alerts.`);
-      await sendAlerts(target, result.detail);
+      Events.add({ targetId: target.id, type: 'notify_sent', message: 'On-site alert raised.' });
+      log(`QUEUE detected for "${label}" — on-site alert raised.`);
     } else {
       log(`QUEUE detected for "${label}" but within cooldown — alert suppressed.`);
     }
@@ -103,46 +102,6 @@ async function handleStateChange(target, result, prevState, s) {
       targetId: target.id,
     });
     emit('notification', note);
-  }
-}
-
-async function sendAlerts(target, detail) {
-  if (!email.isEnabled()) {
-    Events.add({
-      targetId: target.id,
-      type: 'info',
-      message: 'Email not sent: SMTP is not configured.',
-    });
-    return;
-  }
-  const recipients = Users.notifyRecipients().map((u) => u.email);
-  if (!recipients.length) {
-    Events.add({
-      targetId: target.id,
-      type: 'info',
-      message: 'Email not sent: no users have a notification address enabled.',
-    });
-    return;
-  }
-  try {
-    await email.sendQueueAlert({
-      target,
-      recipients,
-      subjectTemplate: settings.get('subjectTemplate', '🚨 Queue started: {label}'),
-      detail,
-    });
-    Events.add({
-      targetId: target.id,
-      type: 'notify_sent',
-      message: `Alert emailed to ${recipients.length} recipient(s).`,
-    });
-  } catch (err) {
-    log('Email send failed:', err.message);
-    Events.add({
-      targetId: target.id,
-      type: 'check_error',
-      message: `Email send failed: ${err.message}`,
-    });
   }
 }
 

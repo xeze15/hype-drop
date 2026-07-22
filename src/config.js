@@ -60,18 +60,6 @@ const config = {
     .map((s) => s.trim())
     .filter(Boolean),
 
-  mail: {
-    host: str(process.env.SMTP_HOST, ''),
-    port: int(process.env.SMTP_PORT, 587),
-    secure: bool(process.env.SMTP_SECURE, false),
-    user: str(process.env.SMTP_USER, ''),
-    pass: str(process.env.SMTP_PASS, ''),
-    from: str(process.env.MAIL_FROM, '') || str(process.env.SMTP_USER, ''),
-    get enabled() {
-      return Boolean(this.host);
-    },
-  },
-
   bootstrap: {
     username: str(process.env.BOOTSTRAP_ADMIN_USERNAME, ''),
     password: str(process.env.BOOTSTRAP_ADMIN_PASSWORD, ''),

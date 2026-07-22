@@ -7,13 +7,6 @@
     <span id="queue-banner-text"></span>
   </div>
 
-  <% if (!emailEnabled) { %>
-    <div class="banner banner-warn">
-      Email alerts are <strong>off</strong> — SMTP isn't configured. On-site alerts still work.
-      <% if (currentUser.role === 'admin') { %>See the <a href="/admin">Admin</a> page &amp; <code>.env</code>.<% } %>
-    </div>
-  <% } %>
-
   <div class="row-between">
     <h1>Monitored targets</h1>
     <div class="row-gap">

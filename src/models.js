@@ -60,12 +60,6 @@ const Users = {
   countAdmins() {
     return db.prepare("SELECT COUNT(*) AS n FROM users WHERE role = 'admin'").get().n;
   },
-  /** Users who should receive email alerts. */
-  notifyRecipients() {
-    return db
-      .prepare("SELECT * FROM users WHERE notify_enabled = 1 AND email != '' ORDER BY id ASC")
-      .all();
-  },
 };
 
 // ── Targets ──────────────────────────────────────────────────────────────────

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <span class="dot"></span>
+      <strong>Hype Drop</strong>
+      <span class="sub">Queue Watcher</span>
+    </header>
+
+    <main>
+      <ul id="targets" class="targets"></ul>
+
+      <form id="add" class="row">
+        <input id="url" type="url" placeholder="https://www.pokemoncenter.com/…" required />
+        <button class="btn" type="submit">Add</button>
+      </form>
+
+      <section class="settings">
+        <label class="line">
+          <span>Check every</span>
+          <span class="right"><input id="interval" type="number" min="1" max="120" /> min</span>
+        </label>
+        <label class="line"><span>Sound alert</span><input id="sound" type="checkbox" class="right" /></label>
+        <label class="line"><span>Notify when a queue starts</span><input id="notifyQueue" type="checkbox" class="right" /></label>
+        <label class="line"><span>Notify when a queue ends</span><input id="notifyOpen" type="checkbox" class="right" /></label>
+      </section>
+
+      <div class="actions">
+        <button id="check" class="btn btn-primary">Check now</button>
+        <button id="test" class="btn">Test alert</button>
+      </div>
+      <p id="status" class="foot"></p>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
