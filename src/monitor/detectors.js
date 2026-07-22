@@ -212,6 +212,25 @@ async function browserCheck(url, { timeoutMs = 30000, userAgent } = {}) {
     locale: 'en-US',
     timezoneId: 'America/New_York',
     javaScriptEnabled: true,
+    deviceScaleFactor: 1,
+    isMobile: false,
+    hasTouch: false,
+    extraHTTPHeaders: { 'Accept-Language': 'en-US,en;q=0.9' },
+  });
+  // Light "stealth": paper over the most common headless/automation tells that
+  // Akamai/Queue-it fingerprint on. Not bulletproof — IP reputation matters more.
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => false });
+    Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+    Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+    window.chrome = window.chrome || { runtime: {} };
+    const origQuery = window.navigator.permissions && window.navigator.permissions.query;
+    if (origQuery) {
+      window.navigator.permissions.query = (params) =>
+        params && params.name === 'notifications'
+          ? Promise.resolve({ state: Notification.permission })
+          : origQuery(params);
+    }
   });
   const page = await context.newPage();
   try {

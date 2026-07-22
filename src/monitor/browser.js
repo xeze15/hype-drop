@@ -6,6 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { config } = require('../config');
 
 let chromium = null;
 try {
@@ -51,6 +52,26 @@ const LAUNCH_ARGS = [
   '--disable-blink-features=AutomationControlled',
 ];
 
+// Parse a proxy URL (http/https/socks5, optionally with credentials) into the
+// shape Playwright expects: { server, username, password }.
+function parseProxy(url) {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const proxy = { server: `${u.protocol}//${u.host}` };
+    if (u.username) proxy.username = decodeURIComponent(u.username);
+    if (u.password) proxy.password = decodeURIComponent(u.password);
+    return proxy;
+  } catch {
+    // Fall back to passing the raw string as the server.
+    return { server: url };
+  }
+}
+
+function getProxy() {
+  return parseProxy(config.monitorDefaults.proxyUrl);
+}
+
 async function getBrowser() {
   if (!chromium) {
     throw new Error(
@@ -58,9 +79,17 @@ async function getBrowser() {
     );
   }
   if (!browserPromise) {
-    const opts = { headless: true, args: LAUNCH_ARGS };
+    const opts = {
+      headless: config.monitorDefaults.headless,
+      args: LAUNCH_ARGS,
+      // Drop the flag that makes navigator.webdriver=true and shows the
+      // "controlled by automated software" banner — reduces bot detection.
+      ignoreDefaultArgs: ['--enable-automation'],
+    };
     const exe = resolveExecutablePath();
     if (exe) opts.executablePath = exe;
+    const proxy = getProxy();
+    if (proxy) opts.proxy = proxy;
     browserPromise = chromium.launch(opts).catch((err) => {
       browserPromise = null; // allow retry on next call
       throw err;
@@ -85,4 +114,4 @@ function isAvailable() {
   return Boolean(chromium);
 }
 
-module.exports = { getBrowser, closeBrowser, isAvailable };
+module.exports = { getBrowser, closeBrowser, isAvailable, parseProxy, getProxy };

@@ -45,6 +45,12 @@ const config = {
     strategy: str(process.env.CHECK_STRATEGY, 'browser'),
     timeoutMs: int(process.env.CHECK_TIMEOUT_MS, 30000),
     userAgent: str(process.env.CHECK_USER_AGENT, ''),
+    // Route the checker through a proxy (best defense against datacenter-IP
+    // blocking). Supports http/https/socks5, e.g. http://user:pass@host:port.
+    proxyUrl: str(process.env.CHECK_PROXY_URL, ''),
+    // Run a headed browser (needs a display / xvfb-run). Headed is harder for
+    // bot protection to flag but heavier; default headless.
+    headless: bool(process.env.CHECK_HEADLESS, true),
     notifyOnQueue: true,
     notifyOnOpen: false,
   },
