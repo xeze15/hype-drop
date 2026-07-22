@@ -1,0 +1,101 @@
+<%- include('partials/head', { title }) %>
+<%- include('partials/nav', { active: 'admin' }) %>
+<main class="container">
+  <h1>Admin</h1>
+  <div id="toast" class="toast" hidden></div>
+
+  <!-- Targets -->
+  <section class="card">
+    <div class="row-between">
+      <h2>Targets</h2>
+      <button id="check-all" class="btn btn-sm">Check all now</button>
+    </div>
+    <form id="add-target" class="inline-form">
+      <input name="url" placeholder="https://www.pokemoncenter.com/" required />
+      <input name="label" placeholder="Label (optional)" />
+      <button class="btn btn-primary" type="submit">Add target</button>
+    </form>
+    <table class="table" id="targets-table">
+      <thead><tr><th>State</th><th>Label / URL</th><th>Last checked</th><th>Enabled</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Monitor settings -->
+  <section class="card">
+    <h2>Monitor settings</h2>
+    <form id="config-form" class="form-grid">
+      <label>Check interval (seconds)
+        <input name="intervalSeconds" type="number" min="10" max="86400" value="<%= monitor.intervalSeconds %>" />
+      </label>
+      <label>Jitter (± seconds)
+        <input name="jitterSeconds" type="number" min="0" max="3600" value="<%= monitor.jitterSeconds %>" />
+      </label>
+      <label>Alert cooldown (seconds)
+        <input name="alertCooldownSeconds" type="number" min="0" max="86400" value="<%= monitor.alertCooldownSeconds %>" />
+      </label>
+      <label>Per-check timeout (ms)
+        <input name="timeoutMs" type="number" min="3000" max="120000" value="<%= monitor.timeoutMs %>" />
+      </label>
+      <label>Detection strategy
+        <select name="strategy">
+          <option value="browser" <%= monitor.strategy === 'browser' ? 'selected' : '' %>>browser (recommended)</option>
+          <option value="auto" <%= monitor.strategy === 'auto' ? 'selected' : '' %>>auto (http → browser)</option>
+          <option value="http" <%= monitor.strategy === 'http' ? 'selected' : '' %>>http only</option>
+        </select>
+      </label>
+      <label>Custom User-Agent (optional)
+        <input name="userAgent" value="<%= monitor.userAgent %>" placeholder="leave blank for default" />
+      </label>
+      <label class="check">
+        <input type="checkbox" name="notifyOnQueue" <%= monitor.notifyOnQueue ? 'checked' : '' %> /> Alert when a queue starts
+      </label>
+      <label class="check">
+        <input type="checkbox" name="notifyOnOpen" <%= monitor.notifyOnOpen ? 'checked' : '' %> /> Notify when a queue ends
+      </label>
+      <label class="full">Email subject template
+        <input name="subjectTemplate" placeholder="🚨 Queue started: {label}" />
+      </label>
+      <div class="full">
+        <button class="btn btn-primary" type="submit">Save settings</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Email -->
+  <section class="card">
+    <h2>Email alerts</h2>
+    <p class="muted">
+      Status: <strong id="email-status"><%= emailEnabled ? 'SMTP configured' : 'disabled (set SMTP_* in .env)' %></strong>.
+      Alerts go to every user who has a notification address and has alerts enabled.
+    </p>
+    <form id="test-email" class="inline-form">
+      <input name="to" type="email" placeholder="send test to (defaults to your address)" />
+      <button class="btn" type="submit" <%= emailEnabled ? '' : 'disabled' %>>Send test email</button>
+      <button id="verify-smtp" class="btn btn-ghost" type="button" <%= emailEnabled ? '' : 'disabled' %>>Verify SMTP</button>
+    </form>
+  </section>
+
+  <!-- Users -->
+  <section class="card">
+    <h2>Users &amp; notification recipients</h2>
+    <form id="add-user" class="form-grid">
+      <label>Username <input name="username" minlength="3" required /></label>
+      <label>Email (Gmail) <input name="email" type="email" placeholder="user@gmail.com" /></label>
+      <label>Password <input name="password" type="password" minlength="8" required /></label>
+      <label>Role
+        <select name="role"><option value="user">user</option><option value="admin">admin</option></select>
+      </label>
+      <label class="check"><input type="checkbox" name="notifyEnabled" checked /> Receives alerts</label>
+      <div class="full"><button class="btn btn-primary" type="submit">Add user</button></div>
+    </form>
+    <table class="table" id="users-table">
+      <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Alerts</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+</main>
+<script src="/static/common.js"></script>
+<script src="/static/admin.js"></script>
+<%- include('partials/foot') %>

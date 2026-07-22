@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+.env.local
+*.local
+
+# Runtime data (SQLite db, logs) — never commit user data or secrets
+data/*.db
+data/*.db-*
+data/*.sqlite
+data/*.sqlite-*
+logs/
+*.log
+
+# Playwright / browser downloads (browsers are provided by the host image)
+.cache/
+playwright-report/
+test-results/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

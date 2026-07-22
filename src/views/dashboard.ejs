@@ -1,0 +1,67 @@
+<%- include('partials/head', { title }) %>
+<%- include('partials/nav', { active: 'dashboard' }) %>
+<main class="container">
+
+  <div id="queue-banner" class="banner banner-alert" hidden>
+    <strong>🚨 A queue is active!</strong>
+    <span id="queue-banner-text"></span>
+  </div>
+
+  <% if (!emailEnabled) { %>
+    <div class="banner banner-warn">
+      Email alerts are <strong>off</strong> — SMTP isn't configured. On-site alerts still work.
+      <% if (currentUser.role === 'admin') { %>See the <a href="/admin">Admin</a> page &amp; <code>.env</code>.<% } %>
+    </div>
+  <% } %>
+
+  <div class="row-between">
+    <h1>Monitored targets</h1>
+    <div class="row-gap">
+      <span id="conn" class="pill pill-muted" title="Live connection">● connecting…</span>
+      <% if (currentUser.role === 'admin') { %>
+        <button id="check-now" class="btn btn-sm">Check now</button>
+      <% } %>
+    </div>
+  </div>
+
+  <div id="targets" class="grid">
+    <% targets.forEach(function(t){ %>
+      <article class="card target" data-id="<%= t.id %>">
+        <div class="target-head">
+          <span class="state-dot state-<%= t.state %>"></span>
+          <div class="target-title">
+            <div class="target-label"><%= t.label || t.url %></div>
+            <a class="target-url" href="<%= t.url %>" target="_blank" rel="noreferrer noopener"><%= t.url %></a>
+          </div>
+          <span class="state-label state-text-<%= t.state %>"><%= t.state %></span>
+        </div>
+        <div class="target-detail muted"><%= t.detail || 'Waiting for first check…' %></div>
+        <div class="target-meta">
+          <span class="checked">Last checked: <span class="rel" data-ts="<%= t.lastCheckedAt || '' %>">—</span></span>
+          <% if (!t.enabled) { %><span class="pill pill-muted">paused</span><% } %>
+        </div>
+      </article>
+    <% }); %>
+  </div>
+  <% if (targets.length === 0) { %>
+    <div class="card center muted">
+      No targets yet.
+      <% if (currentUser.role === 'admin') { %>Add one on the <a href="/admin">Admin</a> page.<% } else { %>Ask an admin to add one.<% } %>
+    </div>
+  <% } %>
+
+  <div class="two-col">
+    <section>
+      <h2>Alerts</h2>
+      <ul id="notifications" class="feed"></ul>
+    </section>
+    <section>
+      <h2>Activity log</h2>
+      <ul id="events" class="feed feed-compact"></ul>
+    </section>
+  </div>
+
+</main>
+<script src="/static/common.js"></script>
+<script src="/static/dashboard.js"></script>
+<%- include('partials/foot') %>

@@ -1,0 +1,33 @@
+<%- include('partials/head', { title }) %>
+<%- include('partials/nav', { active: 'profile' }) %>
+<main class="container narrow">
+  <h1>Your profile</h1>
+  <div id="toast" class="toast" hidden></div>
+
+  <section class="card">
+    <h2>Notifications</h2>
+    <p class="muted">Signed in as <strong><%= currentUser.username %></strong>.</p>
+    <form id="profile-form" class="form-grid">
+      <label class="full">Notification email
+        <input name="email" type="email" value="<%= currentUser.email %>" placeholder="you@gmail.com" />
+      </label>
+      <label class="check">
+        <input type="checkbox" name="notifyEnabled" <%= currentUser.notify_enabled ? 'checked' : '' %> />
+        Email me when a queue starts
+      </label>
+      <div class="full"><button class="btn btn-primary" type="submit">Save</button></div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Change password</h2>
+    <form id="password-form" class="form-grid">
+      <label class="full">Current password <input name="currentPassword" type="password" required /></label>
+      <label class="full">New password <input name="newPassword" type="password" minlength="8" required /></label>
+      <div class="full"><button class="btn btn-primary" type="submit">Update password</button></div>
+    </form>
+  </section>
+</main>
+<script src="/static/common.js"></script>
+<script src="/static/profile.js"></script>
+<%- include('partials/foot') %>
