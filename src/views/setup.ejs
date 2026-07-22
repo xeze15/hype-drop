@@ -1,0 +1,26 @@
+<%- include('partials/head', { title }) %>
+<main class="auth-wrap">
+  <div class="card auth-card">
+    <div class="auth-logo"><span class="brand-dot"></span> Hype Drop</div>
+    <h1>Welcome — create your admin account</h1>
+    <p class="muted">This is a one-time setup. This first account is an administrator.</p>
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+    <form method="post" action="/setup" autocomplete="off">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+      <label>Username
+        <input name="username" required minlength="3" value="<%= values.username || '' %>" autofocus />
+      </label>
+      <label>Notification email (Gmail or any address)
+        <input name="email" type="email" placeholder="you@gmail.com" value="<%= values.email || '' %>" />
+      </label>
+      <label>Password
+        <input name="password" type="password" required minlength="8" />
+      </label>
+      <label>Confirm password
+        <input name="password2" type="password" required minlength="8" />
+      </label>
+      <button class="btn btn-primary btn-block" type="submit">Create admin &amp; sign in</button>
+    </form>
+  </div>
+</main>
+<%- include('partials/foot') %>

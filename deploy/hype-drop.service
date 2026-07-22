@@ -1,0 +1,42 @@
+# systemd unit for Hype Drop.
+#
+# Install:
+#   sudo cp deploy/hype-drop.service /etc/systemd/system/hype-drop.service
+#   # edit User/WorkingDirectory below to match your server, then:
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now hype-drop
+#   sudo systemctl status hype-drop
+#   journalctl -u hype-drop -f      # live logs
+
+[Unit]
+Description=Hype Drop — Pokémon Center queue monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Run as a dedicated non-root user (create one: sudo useradd -r -s /usr/sbin/nologin hypedrop)
+User=hypedrop
+Group=hypedrop
+WorkingDirectory=/opt/hype-drop
+EnvironmentFile=/opt/hype-drop/.env
+ExecStart=/usr/bin/node src/server.js
+Restart=always
+RestartSec=3
+# Give Playwright/Chromium enough time to start on first run.
+TimeoutStartSec=60
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+# Allow writes only to the app's data directory.
+ReadWritePaths=/opt/hype-drop/data
+# Chromium needs these relaxed slightly; keep the rest locked down.
+ProtectControlGroups=true
+ProtectKernelModules=true
+RestrictRealtime=true
+
+[Install]
+WantedBy=multi-user.target

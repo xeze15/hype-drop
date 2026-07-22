@@ -1,0 +1,29 @@
+{
+  "name": "hype-drop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Self-hosted monitor that detects when the Pokémon Center (or any Queue-it protected store) opens a virtual waiting-room queue, shows it live on a login-protected dashboard, and emails allow-listed users the moment a queue starts.",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "create-admin": "node scripts/create-admin.js",
+    "check": "node scripts/check-once.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.8.1",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "express-session": "^1.18.1",
+    "helmet": "^8.0.0",
+    "nodemailer": "^6.9.16",
+    "playwright": "1.61.1"
+  }
+}

@@ -1,0 +1,27 @@
+# Docker Compose for Hype Drop.
+#   cp .env.example .env   # then edit it (set SESSION_SECRET, SMTP_*, etc.)
+#   docker compose up -d --build
+#   docker compose logs -f
+#
+# The app listens on 127.0.0.1:3000 by default — put nginx/caddy in front for TLS,
+# or change the published port below if exposing directly.
+
+services:
+  hype-drop:
+    build: .
+    image: hype-drop:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      DATABASE_PATH: /app/data/hype-drop.db
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - hype-drop-data:/app/data
+    # Chromium in a container is happier with a bit more shared memory.
+    shm_size: "512mb"
+
+volumes:
+  hype-drop-data:

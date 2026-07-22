@@ -1,0 +1,19 @@
+<header class="topbar">
+  <a class="brand" href="/">
+    <span class="brand-dot"></span> Hype Drop
+  </a>
+  <nav class="nav">
+    <% if (currentUser) { %>
+      <a href="/" class="<%= (typeof active !== 'undefined' && active === 'dashboard') ? 'active' : '' %>">Dashboard</a>
+      <% if (currentUser.role === 'admin') { %>
+        <a href="/admin" class="<%= (typeof active !== 'undefined' && active === 'admin') ? 'active' : '' %>">Admin</a>
+      <% } %>
+      <a href="/profile" class="<%= (typeof active !== 'undefined' && active === 'profile') ? 'active' : '' %>">Profile</a>
+      <span class="nav-user"><%= currentUser.username %><% if (currentUser.role === 'admin') { %> <span class="badge">admin</span><% } %></span>
+      <form method="post" action="/logout" class="inline">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <button type="submit" class="btn btn-ghost btn-sm">Sign out</button>
+      </form>
+    <% } %>
+  </nav>
+</header>
